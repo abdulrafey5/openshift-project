@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><title>OPM Frontend</title></head>
+<body>
+<h1>OpenShift Platform for Microservices (OPM)</h1>
+<div id="status"></div>
+<script>
+async function getAPI(path){ try{ let r = await fetch(path); let j = await r.json(); document.getElementById('status').innerHTML += `<pre>${path} → ${JSON.stringify(j,null,2)}</pre>`;}catch(e){document.getElementById('status').innerHTML += `<pre>${path} → error</pre>`}}
+getAPI('/service-a/api'); getAPI('/service-b/api');
+</script>
+</body></html>

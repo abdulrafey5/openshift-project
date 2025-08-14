@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: service-b
+  template:
+    metadata:
+      labels:
+        app: service-b
+    spec:
+      containers:
+      - name: service-b
+        image: abdulrafey5/service-b:latest   # Replace DOCKERHUB_USER with your Docker Hub username
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: mariadb
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: mariadb-secret
+              key: password
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-b
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: service-b
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: service-b
+spec:
+  to:
+    kind: Service
+    name: service-b
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+

@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+  name: service-a
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: service-a
+  template:
+    metadata:
+      labels:
+        app: service-a
+    spec:
+      containers:
+      - name: service-a
+        image: abdulrafey5/service-a:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: mariadb
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: mariadb-secret
+              key: password
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-a
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: service-a
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: service-a
+spec:
+  to:
+    kind: Service
+    name: service-a
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
