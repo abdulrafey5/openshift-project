@@ -50,13 +50,15 @@ jobs:
         image-ref: ${{ env.DOCKERHUB_USERNAME }}/frontend:latest
         severity: CRITICAL
 
-    - name: Prepare kubeconfig (if provided)
+    - name: Prepare kubeconfig (robust for runners)
       if: env.KUBECONFIG_DATA != ''
       run: |
-        mkdir -p $HOME/.kube
-        echo "$KUBECONFIG_DATA" | base64 -d > $HOME/.kube/config
-        ls -l $HOME/.kube
+        mkdir -p $RUNNER_TEMP/.kube
+        echo "$KUBECONFIG_DATA" | base64 -d > $RUNNER_TEMP/.kube/config
+        export KUBECONFIG=$RUNNER_TEMP/.kube/config
         kubectl config current-context || true
+
+
 
     - name: Deploy to OpenShift (if KUBECONFIG_DATA present)
       if: env.KUBECONFIG_DATA != ''
