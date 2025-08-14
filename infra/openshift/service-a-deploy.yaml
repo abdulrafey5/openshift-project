@@ -1,4 +1,6 @@
 apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: service-a
 spec:
   replicas: 2
@@ -54,3 +56,4 @@ spec:
     targetPort: 8080
   tls:
     termination: edge
+

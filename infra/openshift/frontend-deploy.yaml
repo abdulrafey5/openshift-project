@@ -14,14 +14,14 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: DOCKERHUB_USER/frontend:latest   # Replace DOCKERHUB_USER with your Docker Hub username
+        image: abdulrafey5/frontend:latest   # Replace DOCKERHUB_USER with your Docker Hub username
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         env:
         - name: API_SERVICE_A_URL
-          value: http://service-a:8080
+          value: http://service-a.abdulrafey5-dev.svc.cluster.local:8080/api
         - name: API_SERVICE_B_URL
-          value: http://service-b:8080
+          value: http://service-b.abdulrafey5-dev.svc.cluster.local:8080/api
         resources:
           requests:
             cpu: "50m"
@@ -36,8 +36,8 @@ metadata:
   name: frontend
 spec:
   ports:
-  - port: 80
-    targetPort: 80
+  - port: 8080
+    targetPort: 8080
   selector:
     app: frontend
 ---
@@ -50,7 +50,7 @@ spec:
     kind: Service
     name: frontend
   port:
-    targetPort: 80
+    targetPort: 8080
   tls:
     termination: edge
 
