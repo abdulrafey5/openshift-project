@@ -53,7 +53,9 @@ jobs:
     - name: Prepare kubeconfig (if provided)
       if: env.KUBECONFIG_DATA != ''
       run: |
+        mkdir -p $HOME/.kube
         echo "$KUBECONFIG_DATA" | base64 -d > $HOME/.kube/config
+        ls -l $HOME/.kube
         kubectl config current-context || true
 
     - name: Deploy to OpenShift (if KUBECONFIG_DATA present)
