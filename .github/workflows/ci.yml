@@ -1,10 +1,12 @@
 name: CI Build → Scan → Push → Deploy
+
 on:
   push:
     branches: [ "main" ]
     paths:
       - 'apps/**'
       - '.github/workflows/**'
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -13,66 +15,64 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Login to Docker Hub
-      run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - name: Login to Docker Hub
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-    - name: Build & push service-a
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/service-a:latest -f apps/service-a/Dockerfile apps/service-a
-        docker push $DOCKERHUB_USERNAME/service-a:latest
+      - name: Build & push service-a
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/service-a:latest -f apps/service-a/Dockerfile apps/service-a
+          docker push $DOCKERHUB_USERNAME/service-a:latest
 
-    - name: Scan service-a with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKERHUB_USERNAME }}/service-a:latest
-        severity: CRITICAL
+      - name: Scan service-a with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKERHUB_USERNAME }}/service-a:latest
+          severity: CRITICAL
 
-    - name: Build & push service-b
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/service-b:latest -f apps/service-b/Dockerfile apps/service-b
-        docker push $DOCKERHUB_USERNAME/service-b:latest
+      - name: Build & push service-b
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/service-b:latest -f apps/service-b/Dockerfile apps/service-b
+          docker push $DOCKERHUB_USERNAME/service-b:latest
 
-    - name: Scan service-b with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKERHUB_USERNAME }}/service-b:latest
-        severity: CRITICAL
+      - name: Scan service-b with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKERHUB_USERNAME }}/service-b:latest
+          severity: CRITICAL
 
-    - name: Build & push frontend
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/frontend:latest -f apps/frontend/Dockerfile apps/frontend
-        docker push $DOCKERHUB_USERNAME/frontend:latest
+      - name: Build & push frontend
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/frontend:latest -f apps/frontend/Dockerfile apps/frontend
+          docker push $DOCKERHUB_USERNAME/frontend:latest
 
-    - name: Scan frontend with Trivy
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.DOCKERHUB_USERNAME }}/frontend:latest
-        severity: CRITICAL
+      - name: Scan frontend with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.DOCKERHUB_USERNAME }}/frontend:latest
+          severity: CRITICAL
 
-    - name: Install OpenShift CLI
-      run: |
-        echo "Installing OpenShift CLI..."
-        curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
-        tar -xzf oc.tar.gz
-        sudo mv oc /usr/local/bin/
-        oc version
-    
-    - name: Prepare kubeconfig (robust for runners)
-      if: env.KUBECONFIG_DATA != ''
-      run: |
-        mkdir -p $RUNNER_TEMP/.kube
-        echo "$KUBECONFIG_DATA" | base64 -d > $RUNNER_TEMP/.kube/config
-        export KUBECONFIG=$RUNNER_TEMP/.kube/config
-        kubectl config current-context || true
+      - name: Install OpenShift CLI
+        run: |
+          echo "Installing OpenShift CLI..."
+          curl -L https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz -o oc.tar.gz
+          tar -xzf oc.tar.gz
+          sudo mv oc /usr/local/bin/
+          oc version
 
+      - name: Prepare kubeconfig & deploy to OpenShift
+        if: env.KUBECONFIG_DATA != ''
+        run: |
+          echo "Setting up kubeconfig..."
+          mkdir -p $RUNNER_TEMP/.kube
+          echo "$KUBECONFIG_DATA" | base64 -d > $RUNNER_TEMP/.kube/config
+          export KUBECONFIG=$RUNNER_TEMP/.kube/config
+          kubectl config current-context || true
 
-    - name: Deploy to OpenShift (if KUBECONFIG_DATA present)
-      if: env.KUBECONFIG_DATA != ''
-      run: |
-        oc project abdulrafey5-dev
-        oc apply -f infra/openshift/mariadb.yaml
-        oc apply -f infra/openshift/service-a-deploy.yaml
-        oc apply -f infra/openshift/service-b-deploy.yaml
-        oc apply -f infra/openshift/frontend-deploy.yaml
+          echo "Deploying services to OpenShift..."
+          oc project abdulrafey5-dev
+          oc apply -f infra/openshift/mariadb.yaml
+          oc apply -f infra/openshift/service-a-deploy.yaml
+          oc apply -f infra/openshift/service-b-deploy.yaml
+          oc apply -f infra/openshift/frontend-deploy.yaml
