@@ -13,7 +13,6 @@ jobs:
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
     steps:
       - uses: actions/checkout@v4
 
@@ -66,22 +65,18 @@ jobs:
           sudo mv oc /usr/local/bin/
           oc version
 
-      # Prepare kubeconfig, validate, and deploy
-      - name: Prepare kubeconfig & deploy to OpenShift
-        if: env.KUBECONFIG_DATA != ''
+      # Login to OpenShift using token (hardcoded)
+      - name: Login to OpenShift
         run: |
-          echo "Setting up kubeconfig..."
-          mkdir -p $RUNNER_TEMP/.kube
-          echo "$KUBECONFIG_DATA" | base64 -d > $RUNNER_TEMP/.kube/config
-          export KUBECONFIG=$RUNNER_TEMP/.kube/config
+          echo "Logging in to OpenShift..."
+          oc login --token=sha256~OnOzsxlNEGKp7o-EU3Y6TAwMiGB4UxAteRZO1xsrt3A --server=https://api.rm2.thpm.p1.openshiftapps.com:6443 --insecure-skip-tls-verify
+          oc project abdulrafey5-dev
+          oc whoami
 
-          echo "Validating kubeconfig..."
-          kubectl config current-context || { echo "ERROR: kubeconfig is invalid"; exit 1; }
-
-          echo "Deploying services to OpenShift..."
-          oc whoami || { echo "ERROR: Not logged in to OpenShift"; exit 1; }
-          oc project abdulrafey5-dev || { echo "ERROR: Cannot switch to project"; exit 1; }
-
+      # Deploy services
+      - name: Deploy services to OpenShift
+        run: |
+          echo "Deploying services..."
           oc apply -f infra/openshift/mariadb.yaml
           oc apply -f infra/openshift/service-a-deploy.yaml
           oc apply -f infra/openshift/service-b-deploy.yaml
