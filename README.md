@@ -24,10 +24,12 @@ oc -n abdulrafey5-dev create secret generic mariadb-secret --from-literal=passwo
 
 ## If you want GitHub Actions to deploy, create a base64-encoded kubeconfig and add as secret KUBECONFIG_DATA:
 
-cat ~/.kube/config | base64 -w0
-(paste result into GitHub secret KUBECONFIG_DATA)
+```
+cat ~/.kube/config | base64 -w0  (paste result into GitHub secret KUBECONFIG_DATA)
+```
 
-Add Docker Hub secrets to GitHub (username & token).
+**Add Docker Hub secrets to GitHub (username & token).**
 
-Push the repo and watch GitHub Actions run. Check workflow logs for build/push/scan and final deploy step.
+**Push the repo and watch GitHub Actions run. Check workflow logs for build/push/scan and final deploy step.
+**
 
