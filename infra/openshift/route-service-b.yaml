@@ -1,0 +1,13 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: service-b
+spec:
+  to:
+    kind: Service
+    name: service-b
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+

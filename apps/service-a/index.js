@@ -5,36 +5,31 @@ const os = require('os');
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Your actual frontend URL
+// FRONTEND origin (same as before)
 const FRONTEND_ORIGIN = 'https://frontend-abdulrafey5-dev.apps.rm2.thpm.p1.openshiftapps.com';
 
-// CORS configuration
+// CORS
 app.use(cors({
   origin: FRONTEND_ORIGIN,
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization'],
   credentials: false
 }));
+app.options('*', cors());
 
-// Handle preflight requests
-app.options('*', cors({
-  origin: FRONTEND_ORIGIN,
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  credentials: false
-}));
+// canary flag from env
+const isCanary = process.env.CANARY === 'true' || false;
 
-// Health check route
 app.get('/health', (req, res) => res.send('OK'));
 
-// Main API route
 app.get('/api', (req, res) => {
   res.json({
     service: 'service-a',
     host: os.hostname(),
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
+    canary: isCanary
   });
 });
 
-app.listen(port, () => console.log(`service-a listening on ${port}`));
+app.listen(port, () => console.log(`service-a listening on ${port} (canary=${isCanary})`));
 

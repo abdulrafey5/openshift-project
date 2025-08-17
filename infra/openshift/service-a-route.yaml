@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: service-a
+spec:
+  to:
+    kind: Service
+    name: service-a     # stable service
+    weight: 90          # 90% of traffic
+  alternateBackends:
+  - kind: Service
+    name: service-a-canary
+    weight: 10          # 10% of traffic
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+

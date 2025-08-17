@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-a-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-a-canary
+  template:
+    metadata:
+      labels:
+        app: service-a-canary
+    spec:
+      containers:
+      - name: service-a
+        image: abdulrafey5/service-a:canary   # <-- canary tag we pushed
+        ports:
+        - containerPort: 8080
+        env:
+        - name: CANARY
+          value: "true"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-a-canary
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: service-a-canary
+
