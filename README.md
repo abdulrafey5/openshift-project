@@ -22,6 +22,20 @@ This project demonstrates how to deploy a **microservices-based application** (F
 
 ---
 
+## 🔧 Commands Used
+```bash
+oc new-project abdulrafey5-dev
+oc apply -f service-a-deployment.yaml
+oc apply -f service-a-canary.yaml
+oc apply -f service-b-deployment.yaml
+oc apply -f frontend-deployment.yaml
+oc get pods
+oc get svc
+oc get endpoints
+oc get route
+```
+---
+
 ## ⚙️ Deployment on OpenShift  
 
 1. **Clone the repo**  
@@ -87,9 +101,10 @@ Service-B Response
 ```
 
 🎯 Key Features
-✔️ Microservices deployed on OpenShift
-✔️ Frontend ↔ Backend integration
-✔️ Database (MariaDB) integration with backend services
-✔️ Canary Deployment for gradual release rollout
-✔️ Scalable using OpenShift deployment configs
+- ✔️ Microservices deployed on OpenShift
+- ✔️ Frontend ↔ Backend integration
+- ✔️ Database (MariaDB) integration with backend services
+- ✔️ Canary Deployment for gradual release rollout
+- ✔️ Scalable using OpenShift deployment configs
+
 
